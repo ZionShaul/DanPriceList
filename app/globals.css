@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* ===== ערכת צבעים – ירוק נקי לפי תבנית משקי דן ===== */
+@theme {
+  --font-sans: var(--font-assistant), Arial, Helvetica, sans-serif;
+
+  --color-brand-bg: #f3f8f2; /* רקע כללי ירקרק בהיר */
+  --color-brand-surface: #ffffff; /* רקע כרטיסים */
+  --color-brand-ink: #16331c; /* טקסט כהה */
+  --color-brand-muted: #5b6b5d; /* טקסט משני */
+  --color-brand-line: #d9e8d6; /* קווי הפרדה / מסגרות */
+
+  --color-brand-primary: #1f7a3d; /* ירוק ראשי */
+  --color-brand-primary-dark: #155c2c;
+  --color-brand-primary-light: #e7f3e6;
+
+  --color-brand-low: #1f7a3d; /* מחיר נמוך – ירוק */
+  --color-brand-avg: #2563eb; /* ממוצע – כחול */
+  --color-brand-high: #c2410c; /* מחיר גבוה – כתום */
+
+  --color-brand-danger: #b91c1c;
+  --color-brand-warning: #b45309;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* טבלאות עם גלילה אופקית במובייל */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* מטרות מגע נוחות במובייל */
+button,
+[role="button"],
+a.btn {
+  touch-action: manipulation;
+}
