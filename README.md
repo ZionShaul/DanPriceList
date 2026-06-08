@@ -25,6 +25,13 @@ npm run dev                         # http://localhost:3000
 npm test                            # בדיקות לוגיקת פרסור וחישוב
 ```
 
+קובץ אקסל לדוגמה לבדיקת זרימת הטעינה: [`samples/sample-monthly.xlsx`](samples/sample-monthly.xlsx) (5 שורות תקינות + 4 חריגות, 2 ארגונים). ליצירה מחדש: `node scripts/make-sample.mjs`.
+
+## פריסה ל‑Vercel
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FZionShaul%2FDanPriceList&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY,NEXT_PUBLIC_SITE_URL&envDescription=Supabase%20project%20keys)
+
+לאחר הפריסה יש להריץ את המיגרציות ב‑Supabase וליצור מנהל ראשון — פירוט ב‑[SETUP.md](SETUP.md).
+
 ## מבנה
 ```
 app/(app)/        מסכי משתמש: חיפוש, תוצאת חומר, הרכישות שלי
