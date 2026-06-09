@@ -62,6 +62,11 @@ export default function SearchBox() {
   }
 
   function selectMaterial(key: string) {
+    // סגירת הרשימה מיד עם הבחירה (הניווט שומר את הרכיב, לכן יש לאפס מצב מפורשות)
+    setOpen(false);
+    setShowAll(false);
+    setResults([]);
+    if (debounce.current) clearTimeout(debounce.current);
     router.push(`/material?key=${encodeURIComponent(key)}`);
   }
 

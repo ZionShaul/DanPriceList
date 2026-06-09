@@ -60,13 +60,6 @@ export default async function MaterialPage({
       {/* חיפוש חדש זמין ישירות מדף החומר (שדה + "כל הרשימה") */}
       <SearchBox />
 
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1 rounded-lg border border-brand-line bg-brand-surface px-3 py-2 text-sm font-medium text-brand-primary"
-      >
-        <span aria-hidden>→</span> חזרה לחיפוש
-      </Link>
-
       <div>
         <h1 className="text-xl font-bold text-brand-ink">{displayName}</h1>
       </div>
@@ -79,12 +72,13 @@ export default async function MaterialPage({
         </p>
       )}
 
-      <ClickSenseButton url={settings.clicksense_url} enabled={settings.clicksense_enabled} />
-
       <section className="space-y-2">
         <h2 className="text-base font-semibold text-brand-ink">הרכישות שלי לחומר זה</h2>
         <PurchasesTable rows={personalRows} showMaterial={false} />
       </section>
+
+      {/* כפתור הפירוט המלא – בתחתית המסך, קומפקטי */}
+      <ClickSenseButton url={settings.clicksense_url} enabled={settings.clicksense_enabled} />
     </div>
   );
 }
