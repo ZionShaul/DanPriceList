@@ -31,7 +31,7 @@ export default function PurchasesTable({
   }
   return (
     <div className="table-scroll rounded-xl border border-brand-line bg-brand-surface">
-      <table className="w-full min-w-[640px] border-collapse text-sm">
+      <table className="w-full min-w-[360px] border-collapse text-sm">
         <thead>
           <tr className="bg-brand-primary-light text-brand-primary-dark">
             <Th>תאריך</Th>
@@ -39,9 +39,6 @@ export default function PurchasesTable({
             <Th>ספק</Th>
             <Th>כמות</Th>
             <Th>מחיר ליחידה</Th>
-            <Th>סה״כ</Th>
-            <Th>חשבונית</Th>
-            <Th>מק״ט</Th>
           </tr>
         </thead>
         <tbody>
@@ -54,9 +51,6 @@ export default function PurchasesTable({
               <Td>{r.supplier ?? "—"}</Td>
               <Td dir="ltr">{formatNumber(r.quantity)}</Td>
               <Td dir="ltr">{formatCurrency(r.unit_price)}</Td>
-              <Td dir="ltr">{formatCurrency(r.total_price)}</Td>
-              <Td dir="ltr">{r.invoice_number ?? "—"}</Td>
-              <Td dir="ltr">{r.sku ?? "—"}</Td>
             </tr>
           ))}
         </tbody>

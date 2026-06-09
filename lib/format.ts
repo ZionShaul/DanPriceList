@@ -11,6 +11,27 @@ const NUM = new Intl.NumberFormat("he-IL", {
   maximumFractionDigits: 2,
 });
 
+// גרסאות ללא ספרות אחרי הנקודה (לסיכומי KPI – מספר שלם)
+const ILS0 = new Intl.NumberFormat("he-IL", {
+  style: "currency",
+  currency: "ILS",
+  maximumFractionDigits: 0,
+});
+
+const NUM0 = new Intl.NumberFormat("he-IL", {
+  maximumFractionDigits: 0,
+});
+
+export function formatCurrencyWhole(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return ILS0.format(Math.round(value));
+}
+
+export function formatNumberWhole(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return "—";
+  return NUM0.format(Math.round(value));
+}
+
 export function formatCurrency(value: number | null | undefined): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   return ILS.format(value);

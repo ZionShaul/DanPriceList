@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { SearchSuggestion } from "@/lib/types";
@@ -16,6 +16,7 @@ export default function SearchBox() {
   const [showAll, setShowAll] = useState(false);
   const [allItems, setAllItems] = useState<SearchSuggestion[] | null>(null);
   const [loadingAll, setLoadingAll] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // חיפוש מקלדת (כשלא במצב "כל הרשימה")
@@ -67,7 +68,10 @@ export default function SearchBox() {
     setShowAll(false);
     setResults([]);
     if (debounce.current) clearTimeout(debounce.current);
-    router.push(`/material?key=${encodeURIComponent(key)}`);
+    // useTransition נותן אינדיקציית טעינה מיידית עד שדף המוצר נטען
+    startTransition(() => {
+      router.push(`/material?key=${encodeURIComponent(key)}`);
+    });
   }
 
   const q = query.trim().toLowerCase();
@@ -123,6 +127,13 @@ export default function SearchBox() {
             </li>
           )}
         </ul>
+      )}
+
+      {isPending && (
+        <div className="absolute inset-x-0 top-full z-20 mt-2 flex items-center justify-center gap-2 rounded-2xl border border-brand-line bg-brand-surface px-4 py-3 text-sm text-brand-muted shadow-lg">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-line border-t-brand-primary" />
+          טוען מוצר…
+        </div>
       )}
     </div>
   );

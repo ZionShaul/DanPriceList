@@ -5,7 +5,7 @@ import PurchasesTable, { type PurchaseDisplayRow } from "@/components/PurchasesT
 import ClickSenseButton from "@/components/ClickSenseButton";
 import ActivePricelistBanner from "@/components/ActivePricelistBanner";
 import { getActiveUpload, activeUploadLabel } from "@/lib/activeUpload";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatCurrencyWhole, formatNumberWhole } from "@/lib/format";
 
 export const metadata = { title: "הרכישות שלי - מחירון משקי דן" };
 
@@ -46,9 +46,9 @@ export default async function MyPurchasesPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <Summary label="סך רכישות החודש" value={formatCurrency(totalAmount)} />
-        <Summary label="מספר שורות" value={formatNumber(rows.length)} />
-        <Summary label="סך כמות" value={formatNumber(totalQty)} />
+        <Summary label="סך רכישות החודש" value={formatCurrencyWhole(totalAmount)} />
+        <Summary label="מספר שורות" value={formatNumberWhole(rows.length)} />
+        <Summary label="סך כמות" value={formatNumberWhole(totalQty)} />
       </div>
 
       <PurchasesTable rows={rows} showMaterial />
@@ -60,9 +60,12 @@ export default async function MyPurchasesPage() {
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-brand-line bg-brand-surface p-3 text-center">
+    <div className="rounded-2xl border border-brand-line bg-brand-surface px-2 py-3 text-center">
       <div className="text-xs text-brand-muted">{label}</div>
-      <div className="mt-1 text-base font-bold text-brand-ink" dir="ltr">
+      <div
+        className="mt-1 text-sm font-bold leading-tight text-brand-ink tabular-nums sm:text-base"
+        dir="ltr"
+      >
         {value}
       </div>
     </div>
