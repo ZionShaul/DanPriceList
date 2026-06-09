@@ -3,6 +3,8 @@ import { requireUser } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/settings";
 import PurchasesTable, { type PurchaseDisplayRow } from "@/components/PurchasesTable";
 import ClickSenseButton from "@/components/ClickSenseButton";
+import ActivePricelistBanner from "@/components/ActivePricelistBanner";
+import { getActiveUpload, activeUploadLabel } from "@/lib/activeUpload";
 import { formatCurrency, formatNumber } from "@/lib/format";
 
 export const metadata = { title: "הרכישות שלי - מחירון משקי דן" };
@@ -11,6 +13,7 @@ export default async function MyPurchasesPage() {
   const profile = await requireUser();
   const supabase = await createClient();
   const settings = await getSystemSettings();
+  const activeUpload = await getActiveUpload();
 
   // RLS מגביל אוטומטית לרכישות הארגון של המשתמש מהטעינה הפעילה
   const { data } = await supabase
@@ -26,6 +29,8 @@ export default async function MyPurchasesPage() {
 
   return (
     <div className="space-y-5">
+      <ActivePricelistBanner label={activeUploadLabel(activeUpload)} />
+
       <div>
         <h1 className="text-xl font-bold text-brand-ink">הרכישות שלי</h1>
         {profile.organization?.name && (

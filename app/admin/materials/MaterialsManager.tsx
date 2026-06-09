@@ -7,6 +7,7 @@ import {
   mapAliasToMaterial,
   createMaterialFromUnmapped,
 } from "@/lib/actions/materials";
+import CatalogImport from "./CatalogImport";
 
 export interface MaterialWithAliases {
   id: string;
@@ -62,6 +63,9 @@ export default function MaterialsManager({
       {error && (
         <p className="rounded-xl bg-brand-danger/10 px-4 py-2 text-sm text-brand-danger">{error}</p>
       )}
+
+      {/* ייבוא קטלוג מאקסל (סעיף 3) */}
+      <CatalogImport />
 
       {/* חומרים לא ממופים (סעיף 8.2) */}
       <section className="rounded-2xl border border-brand-line bg-brand-surface p-5">

@@ -30,6 +30,10 @@ export async function uploadAndParse(formData: FormData): Promise<UploadActionRe
     return { ok: false, error: "לא נבחר קובץ." };
   }
 
+  // שם הטעינה כפי שיוצג למשתמשים (ברירת מחדל: שם הקובץ)
+  const titleRaw = String(formData.get("title") ?? "").trim();
+  const title = titleRaw || file.name;
+
   let result;
   try {
     const buf = new Uint8Array(await file.arrayBuffer());
@@ -47,7 +51,7 @@ export async function uploadAndParse(formData: FormData): Promise<UploadActionRe
   // 1) יצירת רשומת טעינה (טיוטה)
   const { data: upload, error: upErr } = await db
     .from("monthly_uploads")
-    .insert({ file_name: file.name, status: "draft", uploaded_by: admin.id })
+    .insert({ file_name: file.name, title, status: "draft", uploaded_by: admin.id })
     .select("id")
     .single();
   if (upErr || !upload) {

@@ -31,6 +31,7 @@ export interface ProfileWithOrg extends Profile {
 export interface MonthlyUpload {
   id: string;
   file_name: string;
+  title: string | null;
   storage_path: string | null;
   status: UploadStatus;
   uploaded_by: string | null;

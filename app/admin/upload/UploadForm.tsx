@@ -34,6 +34,20 @@ export default function UploadForm() {
       <p className="mb-4 text-sm text-brand-muted">
         בחר/י קובץ אקסל. הנתונים לא ישפיעו על המשתמשים עד הפרסום.
       </p>
+      <label className="mb-4 block">
+        <span className="mb-1 block text-sm font-medium text-brand-ink">
+          שם הטעינה (יוצג למשתמשים)
+        </span>
+        <input
+          name="title"
+          type="text"
+          placeholder="לדוגמה: מחירון מאי 2026"
+          className="w-full rounded-xl border border-brand-line bg-white px-3 py-2.5 text-brand-ink outline-none focus:border-brand-primary"
+        />
+        <span className="mt-1 block text-xs text-brand-muted">
+          אם יושאר ריק, יוצג שם הקובץ.
+        </span>
+      </label>
       <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-line bg-brand-bg px-4 py-8 text-center">
         <span className="text-3xl" aria-hidden>
           📄

@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import PriceCards from "@/components/PriceCards";
 import PurchasesTable, { type PurchaseDisplayRow } from "@/components/PurchasesTable";
+import ClickSenseButton from "@/components/ClickSenseButton";
+import { getSystemSettings } from "@/lib/settings";
 import type { MaterialPrice } from "@/lib/types";
 
 export default async function MaterialPage({
@@ -18,6 +20,7 @@ export default async function MaterialPage({
   }
 
   const supabase = await createClient();
+  const settings = await getSystemSettings();
 
   // מחירים מצרפיים כלליים (כל הארגונים) – דרך RPC ללא חשיפת שורות
   const { data: priceData } = await supabase.rpc("get_material_prices", { p_key: key });
@@ -51,11 +54,6 @@ export default async function MaterialPage({
 
       <div>
         <h1 className="text-xl font-bold text-brand-ink">{displayName}</h1>
-        {price && !price.is_mapped && (
-          <span className="mt-1 inline-block rounded-full bg-brand-warning/10 px-2 py-0.5 text-xs text-brand-warning">
-            חומר לא ממופה (מוצג בשם המקורי)
-          </span>
-        )}
       </div>
 
       {price ? (
@@ -65,6 +63,8 @@ export default async function MaterialPage({
           לא נמצאו נתוני מחיר לחומר זה בקובץ הפעיל.
         </p>
       )}
+
+      <ClickSenseButton url={settings.clicksense_url} enabled={settings.clicksense_enabled} />
 
       <section className="space-y-2">
         <h2 className="text-base font-semibold text-brand-ink">הרכישות שלי לחומר זה</h2>

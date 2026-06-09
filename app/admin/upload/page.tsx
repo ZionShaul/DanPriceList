@@ -62,6 +62,7 @@ async function UploadSummary({ uploadId }: { uploadId: string }) {
     (unmapped as unknown as { product_description: string; occurrences: number }[]) ?? [];
 
   const stats: [string, string][] = [
+    ["שם הטעינה", upload.title || upload.file_name],
     ["שם הקובץ", upload.file_name],
     ["תאריך ושעת טעינה", formatDateTime(upload.uploaded_at)],
     ["נטען על ידי", upload.uploader?.full_name ?? "—"],

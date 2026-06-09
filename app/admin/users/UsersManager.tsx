@@ -8,6 +8,8 @@ import {
   setUserRole,
   createOrganization,
 } from "@/lib/actions/users";
+import { formatDateTime } from "@/lib/format";
+import UsersImport from "./UsersImport";
 import type { Organization, Profile } from "@/lib/types";
 
 type UserRow = Profile & { organization: { id: string; name: string } | null };
@@ -15,9 +17,11 @@ type UserRow = Profile & { organization: { id: string; name: string } | null };
 export default function UsersManager({
   users,
   organizations,
+  lastLogin = {},
 }: {
   users: UserRow[];
   organizations: Pick<Organization, "id" | "name">[];
+  lastLogin?: Record<string, string | null>;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
@@ -116,6 +120,9 @@ export default function UsersManager({
         </form>
       )}
 
+      {/* טעינת משתמשים מאקסל (סעיף 5) */}
+      <UsersImport />
+
       {/* יצירת ארגון מהיר */}
       <div className="flex items-end gap-2 rounded-2xl border border-brand-line bg-brand-surface p-4">
         <label className="flex-1">
@@ -143,6 +150,7 @@ export default function UsersManager({
               <th className="px-3 py-2 text-right">אימייל</th>
               <th className="px-3 py-2 text-right">ארגון</th>
               <th className="px-3 py-2 text-right">תפקיד</th>
+              <th className="px-3 py-2 text-right">כניסה אחרונה</th>
               <th className="px-3 py-2 text-right">סטטוס</th>
               <th className="px-3 py-2 text-right">פעולות</th>
             </tr>
@@ -156,6 +164,9 @@ export default function UsersManager({
                 </td>
                 <td className="px-3 py-2 text-brand-ink">{u.organization?.name ?? "—"}</td>
                 <td className="px-3 py-2">{u.role === "admin" ? "מנהל" : "רגיל"}</td>
+                <td className="px-3 py-2 text-brand-muted" dir="ltr">
+                  {lastLogin[u.id] ? formatDateTime(lastLogin[u.id]) : "—"}
+                </td>
                 <td className="px-3 py-2">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
@@ -187,7 +198,7 @@ export default function UsersManager({
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-brand-muted">
+                <td colSpan={7} className="px-3 py-6 text-center text-brand-muted">
                   אין משתמשים עדיין.
                 </td>
               </tr>

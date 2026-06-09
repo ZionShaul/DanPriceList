@@ -60,11 +60,6 @@ export default function SearchBox() {
                 className="flex w-full items-center justify-between gap-2 border-b border-brand-line/60 px-4 py-3 text-right text-brand-ink last:border-0 hover:bg-brand-primary-light"
               >
                 <span>{r.display_name}</span>
-                {!r.is_mapped && (
-                  <span className="shrink-0 rounded-full bg-brand-warning/10 px-2 py-0.5 text-[11px] text-brand-warning">
-                    לא ממופה
-                  </span>
-                )}
               </button>
             </li>
           ))}

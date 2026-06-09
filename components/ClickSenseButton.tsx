@@ -1,5 +1,5 @@
-// כפתור "לפירוט מלא ונתונים היסטוריים" → קליקסנס (סעיף 12).
-// מוצג רק אם הוגדר קישור פעיל. נפתח בלשונית חדשה.
+// כפתור "לפירוט מלא ונתונים היסטוריים" → מערכת e-dan (סעיף 12).
+// מציג את לוגו e-dan ומתחתיו מלל. מוצג רק אם הוגדר קישור פעיל. נפתח בלשונית חדשה.
 export default function ClickSenseButton({
   url,
   enabled,
@@ -13,10 +13,18 @@ export default function ClickSenseButton({
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="btn flex w-full items-center justify-center gap-2 rounded-xl border border-brand-primary bg-brand-primary-light px-4 py-3 text-sm font-semibold text-brand-primary-dark"
+      className="btn flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-brand-line bg-brand-surface px-4 py-5 shadow-sm transition hover:border-brand-primary hover:shadow"
     >
-      לפירוט מלא ונתונים היסטוריים
-      <span aria-hidden>↗</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logos/edan.png"
+        alt="e-dan"
+        className="h-12 w-auto max-w-[200px] object-contain"
+      />
+      <span className="flex items-center gap-1 text-sm font-semibold text-brand-primary-dark">
+        לפירוט מלא ונתונים היסטוריים
+        <span aria-hidden>↗</span>
+      </span>
     </a>
   );
 }
