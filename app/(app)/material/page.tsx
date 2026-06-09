@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
+import SearchBox from "@/components/SearchBox";
 import PriceCards from "@/components/PriceCards";
 import PurchasesTable, { type PurchaseDisplayRow } from "@/components/PurchasesTable";
 import ClickSenseButton from "@/components/ClickSenseButton";
@@ -56,11 +57,15 @@ export default async function MaterialPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-brand-primary">
-          ← חזרה לחיפוש
-        </Link>
-      </div>
+      {/* חיפוש חדש זמין ישירות מדף החומר (שדה + "כל הרשימה") */}
+      <SearchBox />
+
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1 rounded-lg border border-brand-line bg-brand-surface px-3 py-2 text-sm font-medium text-brand-primary"
+      >
+        <span aria-hidden>→</span> חזרה לחיפוש
+      </Link>
 
       <div>
         <h1 className="text-xl font-bold text-brand-ink">{displayName}</h1>
