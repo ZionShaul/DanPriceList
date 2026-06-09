@@ -15,15 +15,22 @@ export default async function MyPurchasesPage() {
   const settings = await getSystemSettings();
   const activeUpload = await getActiveUpload();
 
-  // RLS מגביל אוטומטית לרכישות הארגון של המשתמש מהטעינה הפעילה
-  const { data } = await supabase
-    .from("purchase_rows")
-    .select(
-      "id, supplier, sku, product_description, quantity, unit_price, total_price, purchase_date, invoice_number, material:materials_catalog(canonical_name)",
-    )
-    .order("purchase_date", { ascending: false });
-
-  const rows = (data as unknown as PurchaseDisplayRow[] | null) ?? [];
+  // עיגון מפורש לטעינה הפעילה ולארגון המשתמש — כדי שגם מנהל (שעוקף RLS)
+  // לא יראה רכישות מטעינות אחרות/ארגונים אחרים (מניעת כפילויות בתצוגה).
+  let rows: PurchaseDisplayRow[] = [];
+  if (activeUpload?.id) {
+    let q = supabase
+      .from("purchase_rows")
+      .select(
+        "id, supplier, sku, product_description, quantity, unit_price, total_price, purchase_date, invoice_number, material:materials_catalog(canonical_name)",
+      )
+      .eq("upload_id", activeUpload.id)
+      .order("purchase_date", { ascending: false });
+    // משתמש רגיל משויך לארגון; מנהל ללא ארגון רואה תצוגה מקדימה של הטעינה הפעילה.
+    if (profile.organization_id) q = q.eq("organization_id", profile.organization_id);
+    const { data } = await q;
+    rows = (data as unknown as PurchaseDisplayRow[] | null) ?? [];
+  }
   const totalAmount = rows.reduce((s, r) => s + Number(r.total_price || 0), 0);
   const totalQty = rows.reduce((s, r) => s + Number(r.quantity || 0), 0);
 

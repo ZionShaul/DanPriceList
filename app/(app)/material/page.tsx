@@ -5,6 +5,7 @@ import PriceCards from "@/components/PriceCards";
 import PurchasesTable, { type PurchaseDisplayRow } from "@/components/PurchasesTable";
 import ClickSenseButton from "@/components/ClickSenseButton";
 import { getSystemSettings } from "@/lib/settings";
+import { getActiveUpload } from "@/lib/activeUpload";
 import type { MaterialPrice } from "@/lib/types";
 
 export default async function MaterialPage({
@@ -12,7 +13,7 @@ export default async function MaterialPage({
 }: {
   searchParams: Promise<{ key?: string }>;
 }) {
-  await requireUser();
+  const profile = await requireUser();
   const { key } = await searchParams;
 
   if (!key) {
@@ -21,26 +22,35 @@ export default async function MaterialPage({
 
   const supabase = await createClient();
   const settings = await getSystemSettings();
+  const activeUpload = await getActiveUpload();
 
   // מחירים מצרפיים כלליים (כל הארגונים) – דרך RPC ללא חשיפת שורות
   const { data: priceData } = await supabase.rpc("get_material_prices", { p_key: key });
   const price = (priceData as MaterialPrice[] | null)?.[0] ?? null;
 
-  // רכישות אישיות של הארגון לחומר זה (RLS מגביל לארגון המשתמש ולטעינה הפעילה)
-  let q = supabase
-    .from("purchase_rows")
-    .select(
-      "id, supplier, sku, product_description, quantity, unit_price, total_price, purchase_date, invoice_number, material:materials_catalog(canonical_name)",
-    )
-    .order("purchase_date", { ascending: false });
+  // רכישות אישיות של הארגון לחומר זה — מעוגנות מפורשות לטעינה הפעילה ולארגון המשתמש,
+  // כדי שגם מנהל (שעוקף RLS) יראה תצוגה נקייה ללא כפילויות בין טעינות.
+  let personalRows: PurchaseDisplayRow[] = [];
+  if (activeUpload?.id) {
+    let q = supabase
+      .from("purchase_rows")
+      .select(
+        "id, supplier, sku, product_description, quantity, unit_price, total_price, purchase_date, invoice_number, material:materials_catalog(canonical_name)",
+      )
+      .eq("upload_id", activeUpload.id)
+      .order("purchase_date", { ascending: false });
 
-  if (key.startsWith("desc:")) {
-    q = q.is("material_id", null).eq("product_description", key.slice(5));
-  } else {
-    q = q.eq("material_id", key);
+    // משתמש רגיל משויך לארגון; מנהל ללא ארגון רואה תצוגה מקדימה של הטעינה הפעילה.
+    if (profile.organization_id) q = q.eq("organization_id", profile.organization_id);
+
+    if (key.startsWith("desc:")) {
+      q = q.is("material_id", null).eq("product_description", key.slice(5));
+    } else {
+      q = q.eq("material_id", key);
+    }
+    const { data: personal } = await q;
+    personalRows = (personal as unknown as PurchaseDisplayRow[] | null) ?? [];
   }
-  const { data: personal } = await q;
-  const personalRows = (personal as unknown as PurchaseDisplayRow[] | null) ?? [];
 
   const displayName = price?.display_name ?? (key.startsWith("desc:") ? key.slice(5) : "חומר");
 
