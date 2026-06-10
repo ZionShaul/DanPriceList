@@ -13,7 +13,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </Suspense>
       <AppHeader org={profile.organization?.name} />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4">{children}</main>
-      <BottomNav isAdmin={profile.role === "admin"} />
+      <BottomNav
+        isAdmin={profile.role === "admin"}
+        showMyPurchases={profile.show_my_purchases !== false}
+      />
     </div>
   );
 }

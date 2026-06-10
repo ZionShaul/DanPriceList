@@ -3,14 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const TABS = [
-  { href: "/", label: "חיפוש מחירון", icon: "🔍" },
-  { href: "/my-purchases", label: "הרכישות שלי", icon: "🧾" },
-];
+const SEARCH_TAB = { href: "/", label: "חיפוש מחירון", icon: "🔍" };
+const MY_PURCHASES_TAB = { href: "/my-purchases", label: "הרכישות שלי", icon: "🧾" };
+const ADMIN_TAB = { href: "/admin", label: "ניהול", icon: "⚙️" };
 
-export default function BottomNav({ isAdmin }: { isAdmin: boolean }) {
+export default function BottomNav({
+  isAdmin,
+  showMyPurchases = true,
+}: {
+  isAdmin: boolean;
+  showMyPurchases?: boolean;
+}) {
   const pathname = usePathname();
-  const tabs = isAdmin ? [...TABS, { href: "/admin", label: "ניהול", icon: "⚙️" }] : TABS;
+  const tabs = [
+    SEARCH_TAB,
+    ...(showMyPurchases ? [MY_PURCHASES_TAB] : []),
+    ...(isAdmin ? [ADMIN_TAB] : []),
+  ];
 
   return (
     <nav className="sticky bottom-0 z-10 border-t border-brand-line bg-brand-surface">

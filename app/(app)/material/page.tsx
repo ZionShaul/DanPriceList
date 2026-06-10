@@ -31,8 +31,9 @@ export default async function MaterialPage({
 
   // רכישות אישיות של הארגון לחומר זה — מעוגנות מפורשות לטעינה הפעילה ולארגון המשתמש,
   // כדי שגם מנהל (שעוקף RLS) יראה תצוגה נקייה ללא כפילויות בין טעינות.
+  // מוצג רק למשתמשים עם הרשאת הצגת רכישות במסך החיפוש.
   let personalRows: PurchaseDisplayRow[] = [];
-  if (activeUpload?.id) {
+  if (profile.show_purchases !== false && activeUpload?.id) {
     let q = supabase
       .from("purchase_rows")
       .select(
@@ -72,10 +73,12 @@ export default async function MaterialPage({
         </p>
       )}
 
-      <section className="space-y-2">
-        <h2 className="text-base font-semibold text-brand-ink">הרכישות שלי לחומר זה</h2>
-        <PurchasesTable rows={personalRows} showMaterial={false} />
-      </section>
+      {profile.show_purchases !== false && (
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold text-brand-ink">הרכישות שלי לחומר זה</h2>
+          <PurchasesTable rows={personalRows} showMaterial={false} />
+        </section>
+      )}
 
       {/* כפתור הפירוט המלא – בתחתית המסך, קומפקטי */}
       <ClickSenseButton url={settings.clicksense_url} enabled={settings.clicksense_enabled} />

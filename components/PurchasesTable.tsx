@@ -14,7 +14,7 @@ export type PurchaseDisplayRow = Pick<
   | "invoice_number"
 > & { material?: Pick<MaterialCatalog, "canonical_name"> | null };
 
-// טבלת פירוט רכישות (סעיף 10.3) – מציגה את שורות הרכישה של הארגון בלבד.
+// פירוט רכישות (סעיף 10.3) – כרטיסים רספונסיביים שנכנסים למסך ללא גלילה אופקית.
 export default function PurchasesTable({
   rows,
   showMaterial = true,
@@ -30,42 +30,37 @@ export default function PurchasesTable({
     );
   }
   return (
-    <div className="table-scroll rounded-xl border border-brand-line bg-brand-surface">
-      <table className="w-full min-w-[360px] border-collapse text-sm">
-        <thead>
-          <tr className="bg-brand-primary-light text-brand-primary-dark">
-            <Th>תאריך</Th>
-            {showMaterial && <Th>חומר</Th>}
-            <Th>ספק</Th>
-            <Th>כמות</Th>
-            <Th>מחיר ליחידה</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-brand-line/60">
-              <Td>{formatDate(r.purchase_date)}</Td>
-              {showMaterial && (
-                <Td>{r.material?.canonical_name ?? r.product_description}</Td>
-              )}
-              <Td>{r.supplier ?? "—"}</Td>
-              <Td dir="ltr">{formatNumber(r.quantity)}</Td>
-              <Td dir="ltr">{formatCurrency(r.unit_price)}</Td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className="whitespace-nowrap px-3 py-2 text-right font-semibold">{children}</th>;
-}
-function Td({ children, dir }: { children: React.ReactNode; dir?: "ltr" | "rtl" }) {
-  return (
-    <td className="whitespace-nowrap px-3 py-2 text-right text-brand-ink" dir={dir}>
-      {children}
-    </td>
+    <ul className="space-y-2">
+      {rows.map((r) => (
+        <li
+          key={r.id}
+          className="rounded-xl border border-brand-line bg-brand-surface p-3 shadow-sm"
+        >
+          {showMaterial && (
+            <div className="mb-1.5 font-semibold text-brand-ink">
+              {r.material?.canonical_name ?? r.product_description}
+            </div>
+          )}
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+            <span className="text-brand-muted">{formatDate(r.purchase_date)}</span>
+            <span className="text-brand-ink">{r.supplier ?? "—"}</span>
+          </div>
+          <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+            <span className="text-brand-muted">
+              כמות:{" "}
+              <span className="font-medium text-brand-ink" dir="ltr">
+                {formatNumber(r.quantity)}
+              </span>
+            </span>
+            <span className="text-brand-muted">
+              מחיר ליחידה:{" "}
+              <span className="font-semibold text-brand-ink" dir="ltr">
+                {formatCurrency(r.unit_price)}
+              </span>
+            </span>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

@@ -196,10 +196,18 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "יש לשייך משתמש רגיל לארגון." };
   }
 
+  // הרשאות תצוגה (checkbox – נשלח 'on' רק כשמסומן)
+  const show_purchases = formData.get("show_purchases") === "on";
+  const show_my_purchases = formData.get("show_my_purchases") === "on";
+
   const db = createAdminClient();
-  const { error } = await db.from("profiles").update(data).eq("id", id);
+  const { error } = await db
+    .from("profiles")
+    .update({ ...data, show_purchases, show_my_purchases })
+    .eq("id", id);
   if (error) return { ok: false, error: "שגיאה בעדכון: " + error.message };
   revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 

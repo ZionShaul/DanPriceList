@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { getSystemSettings } from "@/lib/settings";
@@ -11,6 +12,8 @@ export const metadata = { title: "הרכישות שלי - מחירון משקי 
 
 export default async function MyPurchasesPage() {
   const profile = await requireUser();
+  // הרשאה ברמת משתמש: ללא הרשאה – אין גישה למסך (ברירת מחדל: מותר)
+  if (profile.show_my_purchases === false) redirect("/");
   const supabase = await createClient();
   const settings = await getSystemSettings();
   const activeUpload = await getActiveUpload();

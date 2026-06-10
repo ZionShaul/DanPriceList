@@ -12,7 +12,9 @@ export default async function AdminUsersPage() {
   const [{ data: users }, { data: orgs }, authList] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, email, phone, role, status, organization_id, organization:organizations(id, name)")
+      .select(
+        "id, full_name, email, phone, role, status, organization_id, show_purchases, show_my_purchases, organization:organizations(id, name)",
+      )
       .order("full_name"),
     supabase.from("organizations").select("id, name").order("name"),
     admin.auth.admin.listUsers({ perPage: 1000 }),

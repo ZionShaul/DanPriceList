@@ -22,6 +22,9 @@ export interface Profile {
   role: UserRole;
   status: UserStatus;
   created_at: string;
+  // הרשאות תצוגה ברמת משתמש
+  show_purchases: boolean; // הצגת רכישות במסך החיפוש/חומר
+  show_my_purchases: boolean; // הצגת מסך "הרכישות שלי"
 }
 
 export interface ProfileWithOrg extends Profile {
@@ -87,6 +90,8 @@ export interface SystemSettings {
   id: number;
   clicksense_url: string | null;
   clicksense_enabled: boolean;
+  registration_url: string | null;
+  registration_enabled: boolean;
 }
 
 // ===== טיפוסים מחושבים (RPC) =====
