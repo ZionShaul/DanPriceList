@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createUser,
+  updateUser,
+  deleteUser,
   setUserStatus,
   setUserRole,
   createOrganization,
@@ -18,13 +20,16 @@ export default function UsersManager({
   users,
   organizations,
   lastLogin = {},
+  currentUserId,
 }: {
   users: UserRow[];
   organizations: Pick<Organization, "id" | "name">[];
   lastLogin?: Record<string, string | null>;
+  currentUserId?: string;
 }) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState<UserRow | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [newOrg, setNewOrg] = useState("");
@@ -49,6 +54,25 @@ export default function UsersManager({
     if (!res.ok) return setError(res.error);
     setNewOrg("");
     router.refresh();
+  }
+
+  async function onEdit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    const res = await updateUser(new FormData(e.currentTarget));
+    setPending(false);
+    if (!res.ok) return setError(res.error);
+    setEditing(null);
+    router.refresh();
+  }
+
+  async function onDelete(u: UserRow) {
+    if (!confirm(`למחוק את "${u.full_name}"? הפעולה בלתי הפיכה.`)) return;
+    setError(null);
+    const res = await deleteUser(u.id);
+    if (!res.ok) setError(res.error);
+    else router.refresh();
   }
 
   async function toggleStatus(u: UserRow) {
@@ -120,6 +144,74 @@ export default function UsersManager({
         </form>
       )}
 
+      {editing && (
+        <form
+          key={editing.id}
+          onSubmit={onEdit}
+          className="grid gap-3 rounded-2xl border border-brand-primary bg-brand-surface p-5 sm:grid-cols-2"
+        >
+          <div className="sm:col-span-2 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-brand-ink">
+              עריכת משתמש: {editing.full_name}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setEditing(null)}
+              className="text-sm text-brand-muted underline"
+            >
+              ביטול
+            </button>
+          </div>
+          <input type="hidden" name="id" value={editing.id} />
+          <Field name="full_name" label="שם מלא" required defaultValue={editing.full_name} />
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-brand-ink">אימייל (קבוע)</span>
+            <input
+              value={editing.email}
+              readOnly
+              dir="ltr"
+              className="w-full cursor-not-allowed rounded-xl border border-brand-line bg-brand-bg px-3 py-2.5 text-brand-muted"
+            />
+          </label>
+          <Field name="phone" label="טלפון" dir="ltr" required defaultValue={editing.phone} />
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-brand-ink">סוג משתמש</span>
+            <select
+              name="role"
+              defaultValue={editing.role}
+              className="w-full rounded-xl border border-brand-line bg-white px-3 py-2.5"
+            >
+              <option value="user">משתמש רגיל</option>
+              <option value="admin">מנהל מערכת</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-brand-ink">ארגון</span>
+            <select
+              name="organization_id"
+              defaultValue={editing.organization_id ?? ""}
+              className="w-full rounded-xl border border-brand-line bg-white px-3 py-2.5"
+            >
+              <option value="">— ללא —</option>
+              {organizations.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              disabled={pending}
+              className="w-full rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {pending ? "שומר..." : "שמירת שינויים"}
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* טעינת משתמשים מאקסל (סעיף 5) */}
       <UsersImport />
 
@@ -179,7 +271,16 @@ export default function UsersManager({
                   </span>
                 </td>
                 <td className="px-3 py-2">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setEditing(u);
+                        setError(null);
+                      }}
+                      className="rounded-lg border border-brand-primary px-2 py-1 text-xs font-semibold text-brand-primary"
+                    >
+                      ערוך
+                    </button>
                     <button
                       onClick={() => toggleStatus(u)}
                       className="rounded-lg border border-brand-line px-2 py-1 text-xs"
@@ -192,6 +293,14 @@ export default function UsersManager({
                     >
                       {u.role === "admin" ? "הפוך לרגיל" : "הפוך למנהל"}
                     </button>
+                    {u.id !== currentUserId && (
+                      <button
+                        onClick={() => onDelete(u)}
+                        className="rounded-lg border border-brand-danger px-2 py-1 text-xs font-semibold text-brand-danger"
+                      >
+                        מחק
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -216,12 +325,14 @@ function Field({
   type = "text",
   dir,
   required,
+  defaultValue,
 }: {
   name: string;
   label: string;
   type?: string;
   dir?: "ltr" | "rtl";
   required?: boolean;
+  defaultValue?: string;
 }) {
   return (
     <label className="block">
@@ -231,6 +342,7 @@ function Field({
         type={type}
         dir={dir}
         required={required}
+        defaultValue={defaultValue}
         className="w-full rounded-xl border border-brand-line bg-white px-3 py-2.5"
       />
     </label>

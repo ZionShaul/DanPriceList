@@ -191,10 +191,43 @@ export async function updateUser(formData: FormData): Promise<ActionResult> {
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "נתונים שגויים" };
   }
+  const data = parsed.data;
+  if (data.role === "user" && !data.organization_id) {
+    return { ok: false, error: "יש לשייך משתמש רגיל לארגון." };
+  }
 
   const db = createAdminClient();
-  const { error } = await db.from("profiles").update(parsed.data).eq("id", id);
+  const { error } = await db.from("profiles").update(data).eq("id", id);
   if (error) return { ok: false, error: "שגיאה בעדכון: " + error.message };
+  revalidatePath("/admin/users");
+  return { ok: true };
+}
+
+/** מחיקת משתמש לצמיתות (auth + פרופיל נמחק ב-cascade). */
+export async function deleteUser(id: string): Promise<ActionResult> {
+  const admin = await requireAdmin();
+  if (!id) return { ok: false, error: "מזהה משתמש חסר" };
+  if (admin.id === id) {
+    return { ok: false, error: "לא ניתן למחוק את המשתמש המחובר כעת." };
+  }
+
+  const db = createAdminClient();
+
+  // מניעת מחיקת המנהל הפעיל האחרון (הגנה מפני נעילה מהמערכת)
+  const { data: target } = await db.from("profiles").select("role").eq("id", id).single();
+  if (target?.role === "admin") {
+    const { count } = await db
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "admin")
+      .eq("status", "active");
+    if ((count ?? 0) <= 1) {
+      return { ok: false, error: "לא ניתן למחוק את מנהל המערכת הפעיל האחרון." };
+    }
+  }
+
+  const { error } = await db.auth.admin.deleteUser(id);
+  if (error) return { ok: false, error: "שגיאה במחיקה: " + error.message };
   revalidatePath("/admin/users");
   return { ok: true };
 }

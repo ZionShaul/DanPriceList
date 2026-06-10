@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth";
 import UsersManager from "./UsersManager";
 import type { Organization, Profile } from "@/lib/types";
 
 export default async function AdminUsersPage() {
+  const me = await requireAdmin();
   const supabase = await createClient();
   const admin = createAdminClient();
 
@@ -31,6 +33,7 @@ export default async function AdminUsersPage() {
       }
       organizations={(orgs as unknown as Pick<Organization, "id" | "name">[]) ?? []}
       lastLogin={lastLogin}
+      currentUserId={me.id}
     />
   );
 }
