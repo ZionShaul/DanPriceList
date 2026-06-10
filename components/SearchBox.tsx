@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/analytics/track";
 import type { SearchSuggestion } from "@/lib/types";
 
 // שדה חיפוש עם הצעות מתוך הקטלוג + אפשרות לפתוח את כל הרשימה ולבחור (סעיף 10.1)
@@ -33,9 +34,12 @@ export default function SearchBox() {
       }
       setLoading(true);
       const { data } = await supabase.rpc("search_materials", { p_query: q });
-      setResults((data as SearchSuggestion[]) ?? []);
+      const found = (data as SearchSuggestion[]) ?? [];
+      setResults(found);
       setLoading(false);
       setOpen(true);
+      // תיעוד חיפוש (כולל 0 תוצאות – לזיהוי פערים בקטלוג)
+      track("search", { query: q, results_count: found.length });
     }, 250);
     return () => {
       if (debounce.current) clearTimeout(debounce.current);
@@ -51,6 +55,7 @@ export default function SearchBox() {
     }
     setShowAll(true);
     setOpen(true);
+    track("open_all_list", {});
     if (allItems) return;
     setLoadingAll(true);
     // get_material_prices ללא פרמטרים מחזיר את כל המוצרים בטעינה הפעילה (security definer)
@@ -62,7 +67,8 @@ export default function SearchBox() {
     setLoadingAll(false);
   }
 
-  function selectMaterial(key: string) {
+  function selectMaterial(key: string, displayName?: string) {
+    track("select_material", { material_key: key, display_name: displayName ?? "" });
     // סגירת הרשימה מיד עם הבחירה (הניווט שומר את הרכיב, לכן יש לאפס מצב מפורשות)
     setOpen(false);
     setShowAll(false);
@@ -114,7 +120,7 @@ export default function SearchBox() {
             listToShow.map((r) => (
               <li key={r.material_key}>
                 <button
-                  onClick={() => selectMaterial(r.material_key)}
+                  onClick={() => selectMaterial(r.material_key, r.display_name)}
                   className="flex w-full items-center justify-between gap-2 border-b border-brand-line/60 px-4 py-3 text-right text-brand-ink last:border-0 hover:bg-brand-primary-light"
                 >
                   <span>{r.display_name}</span>

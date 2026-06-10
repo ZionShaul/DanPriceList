@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin/users", label: "ניהול משתמשים" },
   { href: "/admin/materials", label: "קטלוג חומרים" },
   { href: "/admin/history", label: "היסטוריית טעינות" },
+  { href: "/admin/analytics", label: "סטטיסטיקה" },
   { href: "/admin/settings", label: "הגדרות מערכת" },
 ];
 
