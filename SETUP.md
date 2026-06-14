@@ -17,12 +17,15 @@
 2. ב‑**Project Settings → API** העתק/י: `Project URL`, `anon public key`, `service_role key`.
 
 ### הרצת מיגרציות (סכמה, RLS, RPC)
-דרך **SQL Editor** ב‑Supabase, הרץ/י לפי הסדר את הקבצים מתיקיית `supabase/migrations/`:
+דרך **SQL Editor** ב‑Supabase, הרץ/י לפי הסדר את **כל** הקבצים מתיקיית `supabase/migrations/` (חשוב — בלי כולם, מסכי הניהול ייכשלו):
 1. `0001_init.sql` — טבלאות, אינדקסים, RLS, פונקציות RPC, ו‑bucket אחסון.
 2. `0002_seed.sql` — נתוני דמו (אופציונלי: ארגון וחומר לדוגמה).
 3. `0003_publish.sql` — פונקציית פרסום/שחזור אטומית.
+4. `0004_upload_title.sql` — שם תצוגה לטעינה.
+5. `0005_analytics.sql` — טבלת אירועי שימוש + דוח אנליטיקס למנהל.
+6. `0006_permissions_and_registration.sql` — הרשאות תצוגה למשתמש + קישור בקשת רישום.
 
-> לחלופין, עם Supabase CLI: `supabase link` ואז `supabase db push`.
+> שים/י לב: כל מיגרציה חדשה שמתווספת לתיקייה יש להריץ גם כן. לחלופין, עם Supabase CLI: `supabase link` ואז `supabase db push` (מריץ אוטומטית את כל הקבצים).
 
 ---
 

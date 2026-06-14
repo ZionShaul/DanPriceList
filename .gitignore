@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local secrets / notes (never commit)
+google send mail API pass.txt
+*.secret.txt
+
+# office temp lock files
+~$*
