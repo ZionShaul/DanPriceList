@@ -3,6 +3,25 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { AuthError } from "@supabase/supabase-js";
+
+// ממפה שגיאות OTP להודעה ברורה (במקום הודעה גנרית שמסתירה את הסיבה).
+function otpErrorMessage(error: AuthError): string {
+  const msg = error.message || "";
+  if (error.status === 429 || error.code === "over_email_send_rate_limit" || /rate limit/i.test(msg)) {
+    return "נשלחו יותר מדי בקשות. המתן/י דקה ונסה/י שוב.";
+  }
+  if (error.code === "otp_disabled" || /signups not allowed/i.test(msg)) {
+    return "האימייל אינו רשום במערכת. פנה/י למנהל המערכת.";
+  }
+  if (/sending|smtp|email/i.test(msg)) {
+    return "תקלה בשליחת הקוד לאימייל. ודא/י הגדרת SMTP במערכת או פנה/י למנהל.";
+  }
+  if (/api key|jwt|invalid/i.test(msg)) {
+    return `תקלת תצורה בחיבור למערכת (${msg}). פנה/י למנהל.`;
+  }
+  return msg ? `שגיאה: ${msg}` : "אירעה שגיאה. נסה/י שוב או פנה/י למנהל המערכת.";
+}
 
 export default function LoginForm() {
   const router = useRouter();
@@ -24,7 +43,7 @@ export default function LoginForm() {
     });
     setLoading(false);
     if (error) {
-      setError("האימייל אינו רשום במערכת או שאירעה שגיאה. פנה/י למנהל המערכת.");
+      setError(otpErrorMessage(error));
       return;
     }
     setStep("code");
