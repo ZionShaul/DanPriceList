@@ -92,6 +92,9 @@ export interface SystemSettings {
   clicksense_enabled: boolean;
   registration_url: string | null;
   registration_enabled: boolean;
+  whatsapp_number: string | null;
+  whatsapp_message: string | null;
+  whatsapp_enabled: boolean;
 }
 
 // ===== טיפוסים מחושבים (RPC) =====

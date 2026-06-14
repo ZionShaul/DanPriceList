@@ -12,6 +12,9 @@ export async function getSystemSettings(): Promise<SystemSettings> {
       clicksense_enabled: false,
       registration_url: null,
       registration_enabled: false,
+      whatsapp_number: null,
+      whatsapp_message: null,
+      whatsapp_enabled: false,
     }
   );
 }

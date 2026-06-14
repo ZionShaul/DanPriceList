@@ -80,5 +80,52 @@ export async function updateRegistration(formData: FormData): Promise<ActionResu
   if (error) return { ok: false, error: "שגיאה בשמירה: " + error.message };
 
   revalidatePath("/login");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+const whatsappSchema = z.object({
+  // פורמט בינלאומי, ספרות בלבד (לדוגמה 9725XXXXXXXX)
+  number: z.string().regex(/^\d{8,15}$/, "מספר לא תקין – ספרות בלבד בפורמט בינלאומי (למשל 9725...)"),
+  message: z.string().trim().max(1000).optional(),
+  enabled: z.boolean(),
+});
+
+/** עדכון כפתור התמיכה בוואטסאפ (מספר + הודעת ברירת מחדל). */
+export async function updateWhatsApp(formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const enabled = formData.get("enabled") === "on";
+  // משאירים רק ספרות (מנקה +, רווחים, מקפים)
+  const number = String(formData.get("number") || "").replace(/\D/g, "");
+  const message = String(formData.get("message") || "").trim();
+
+  // ביטול ללא מספר – שמירה ריקה
+  if (!enabled && number === "") {
+    const db = createAdminClient();
+    await db
+      .from("system_settings")
+      .update({ whatsapp_number: null, whatsapp_message: message || null, whatsapp_enabled: false })
+      .eq("id", 1);
+    revalidatePath("/", "layout");
+    return { ok: true };
+  }
+
+  const parsed = whatsappSchema.safeParse({ number, message, enabled });
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "נתונים שגויים" };
+  }
+
+  const db = createAdminClient();
+  const { error } = await db
+    .from("system_settings")
+    .update({
+      whatsapp_number: parsed.data.number,
+      whatsapp_message: parsed.data.message || null,
+      whatsapp_enabled: parsed.data.enabled,
+    })
+    .eq("id", 1);
+  if (error) return { ok: false, error: "שגיאה בשמירה: " + error.message };
+
+  revalidatePath("/", "layout");
   return { ok: true };
 }

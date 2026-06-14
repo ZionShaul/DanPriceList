@@ -1,8 +1,14 @@
+import RegistrationIcon from "@/components/RegistrationIcon";
+
 // כותרת עליונה משותפת למסכי המשתמש
 export default function AppHeader({
   org,
+  registrationUrl = null,
+  registrationEnabled = false,
 }: {
   org?: string | null;
+  registrationUrl?: string | null;
+  registrationEnabled?: boolean;
 }) {
   return (
     <header className="sticky top-0 z-10 border-b border-brand-line bg-brand-primary text-white">
@@ -19,6 +25,10 @@ export default function AppHeader({
         <div className="leading-tight">
           <div className="text-base font-bold">מחירון הדברה ודשן</div>
           {org && <div className="text-xs text-white/80">{org}</div>}
+        </div>
+        {/* בקשת צירוף עובדים – בקצה הנגדי */}
+        <div className="ms-auto">
+          <RegistrationIcon url={registrationUrl} enabled={registrationEnabled} />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 import { getSystemSettings } from "@/lib/settings";
 import SettingsForm from "./SettingsForm";
 import RegistrationForm from "./RegistrationForm";
+import WhatsAppForm from "./WhatsAppForm";
 
 export default async function AdminSettingsPage() {
   const settings = await getSystemSettings();
@@ -14,6 +15,11 @@ export default async function AdminSettingsPage() {
       <RegistrationForm
         url={settings.registration_url ?? ""}
         enabled={settings.registration_enabled}
+      />
+      <WhatsAppForm
+        number={settings.whatsapp_number ?? ""}
+        message={settings.whatsapp_message ?? ""}
+        enabled={settings.whatsapp_enabled}
       />
     </div>
   );
