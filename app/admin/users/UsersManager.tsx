@@ -9,6 +9,7 @@ import {
   setUserStatus,
   setUserRole,
   createOrganization,
+  resetUserDevice,
 } from "@/lib/actions/users";
 import { formatDateTime } from "@/lib/format";
 import UsersImport from "./UsersImport";
@@ -83,6 +84,13 @@ export default function UsersManager({
 
   async function toggleRole(u: UserRow) {
     const res = await setUserRole(u.id, u.role === "admin" ? "user" : "admin");
+    if (!res.ok) setError(res.error);
+    else router.refresh();
+  }
+
+  async function resetDevice(u: UserRow) {
+    if (!confirm(`לאפס את קשירת המכשיר של "${u.full_name}"? המשתמש יוכל להתחבר ממכשיר חדש.`)) return;
+    const res = await resetUserDevice(u.id);
     if (!res.ok) setError(res.error);
     else router.refresh();
   }
@@ -265,6 +273,7 @@ export default function UsersManager({
               <th className="px-3 py-2 text-right">תפקיד</th>
               <th className="px-3 py-2 text-right">כניסה אחרונה</th>
               <th className="px-3 py-2 text-right">סטטוס</th>
+              <th className="px-3 py-2 text-right">מכשיר</th>
               <th className="px-3 py-2 text-right">פעולות</th>
             </tr>
           </thead>
@@ -291,6 +300,17 @@ export default function UsersManager({
                     {u.status === "active" ? "פעיל" : "חסום"}
                   </span>
                 </td>
+                <td className="px-3 py-2 text-xs">
+                  {u.role === "admin" ? (
+                    <span className="text-brand-muted">—</span>
+                  ) : u.active_device_id ? (
+                    <span className="text-brand-ink" title={u.active_device_label ?? undefined}>
+                      קשור{u.device_bound_at ? ` · ${formatDateTime(u.device_bound_at)}` : ""}
+                    </span>
+                  ) : (
+                    <span className="text-brand-muted">לא קשור</span>
+                  )}
+                </td>
                 <td className="px-3 py-2">
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -314,6 +334,14 @@ export default function UsersManager({
                     >
                       {u.role === "admin" ? "הפוך לרגיל" : "הפוך למנהל"}
                     </button>
+                    {u.role !== "admin" && u.active_device_id && (
+                      <button
+                        onClick={() => resetDevice(u)}
+                        className="rounded-lg border border-brand-line px-2 py-1 text-xs"
+                      >
+                        אפס מכשיר
+                      </button>
+                    )}
                     {u.id !== currentUserId && (
                       <button
                         onClick={() => onDelete(u)}
@@ -328,7 +356,7 @@ export default function UsersManager({
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-brand-muted">
+                <td colSpan={8} className="px-3 py-6 text-center text-brand-muted">
                   אין משתמשים עדיין.
                 </td>
               </tr>

@@ -25,6 +25,10 @@ export interface Profile {
   // הרשאות תצוגה ברמת משתמש
   show_purchases: boolean; // הצגת רכישות במסך החיפוש/חומר
   show_my_purchases: boolean; // הצגת מסך "הרכישות שלי"
+  // קשירת חשבון למכשיר יחיד (משתמש רגיל בלבד)
+  active_device_id: string | null;
+  active_device_label: string | null;
+  device_bound_at: string | null;
 }
 
 export interface ProfileWithOrg extends Profile {

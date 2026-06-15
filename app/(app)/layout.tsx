@@ -5,6 +5,7 @@ import AppHeader from "@/components/AppHeader";
 import BottomNav from "@/components/BottomNav";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import WhatsAppFab from "@/components/WhatsAppFab";
+import DeviceGuard from "@/components/DeviceGuard";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const profile = await requireUser();
@@ -14,6 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense fallback={null}>
         <AnalyticsTracker userId={profile.id} orgId={profile.organization_id} />
       </Suspense>
+      <DeviceGuard />
       <AppHeader
         org={profile.organization?.name}
         registrationUrl={settings.registration_url}

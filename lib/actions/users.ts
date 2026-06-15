@@ -259,6 +259,31 @@ export async function setUserRole(id: string, role: UserRole): Promise<ActionRes
   return { ok: true };
 }
 
+/** איפוס קשירת המכשיר של משתמש – מאפשר היקשרות למכשיר חדש (סעיף קשירת מכשיר). */
+export async function resetUserDevice(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  if (!id) return { ok: false, error: "מזהה משתמש חסר" };
+  const db = createAdminClient();
+  const { error } = await db
+    .from("profiles")
+    .update({ active_device_id: null, active_device_label: null, device_bound_at: null })
+    .eq("id", id);
+  if (error) return { ok: false, error: "שגיאה באיפוס מכשיר: " + error.message };
+
+  // הקשחה (best-effort): ניתוק סשנים פעילים אם ה-API זמין
+  try {
+    const adminApi = db.auth.admin as unknown as {
+      signOut?: (userId: string, scope?: string) => Promise<unknown>;
+    };
+    if (typeof adminApi.signOut === "function") await adminApi.signOut(id, "global");
+  } catch {
+    /* התעלמות – לא קריטי */
+  }
+
+  revalidatePath("/admin/users");
+  return { ok: true };
+}
+
 /** יצירת ארגון חדש (לשיוך משתמשים). */
 export async function createOrganization(name: string): Promise<ActionResult> {
   await requireAdmin();

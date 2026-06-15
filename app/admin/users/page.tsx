@@ -13,7 +13,7 @@ export default async function AdminUsersPage() {
     supabase
       .from("profiles")
       .select(
-        "id, full_name, email, phone, role, status, organization_id, show_purchases, show_my_purchases, organization:organizations(id, name)",
+        "id, full_name, email, phone, role, status, organization_id, show_purchases, show_my_purchases, active_device_id, active_device_label, device_bound_at, organization:organizations(id, name)",
       )
       .order("full_name"),
     supabase.from("organizations").select("id, name").order("name"),
