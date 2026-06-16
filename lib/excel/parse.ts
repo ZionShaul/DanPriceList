@@ -102,9 +102,35 @@ function toDateString(value: unknown): string | null {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString().slice(0, 10);
   }
-  const d = new Date(String(value));
+
+  // מספר סריאלי של אקסל (גיבוי – בד"כ cellDates ממיר ל-Date)
+  if (typeof value === "number" && value > 0 && value < 60000) {
+    const d = new Date(Math.round((value - 25569) * 86400 * 1000));
+    if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  }
+
+  const s = String(value).trim();
+
+  // פורמט ישראלי יום-תחילה: DD.MM.YY(YY) / DD/MM/YYYY / DD-MM-YY
+  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
+  if (m) {
+    const day = Number(m[1]);
+    const mon = Number(m[2]);
+    let year = Number(m[3]);
+    if (year < 100) year += 2000;
+    if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
+      const iso = `${year}-${String(mon).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const d = new Date(iso);
+      if (!Number.isNaN(d.getTime())) return iso;
+    }
+  }
+
+  // ISO או פורמט שה-Date מזהה
+  const d = new Date(s);
   if (!Number.isNaN(d.getTime())) return d.toISOString().slice(0, 10);
-  return toText(value); // נשמר כפי שהוא אם לא ניתן לפרסר
+
+  // לא ניתן לפרסר – מחזירים null (כדי לא לשבור את הטעינה ב-DB)
+  return null;
 }
 
 /**
