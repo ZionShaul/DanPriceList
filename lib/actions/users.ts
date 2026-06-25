@@ -307,3 +307,36 @@ export async function createOrganization(name: string): Promise<ActionResult> {
   revalidatePath("/admin/users");
   return { ok: true };
 }
+
+export type DeleteOrgResult =
+  | { ok: true }
+  | { ok: false; error: string }
+  | { ok: false; confirm: true; purchases: number; users: number };
+
+/**
+ * מחיקת רפת/ארגון. אם משויכים אליו נתוני רכישות או משתמשים – מחזיר confirm
+ * (התראה למנהל), ורק עם force=true המחיקה מתבצעת. שורות רכישה/משתמשים מנותקים
+ * (organization_id → null) בזכות ON DELETE SET NULL.
+ */
+export async function deleteOrganization(id: string, force = false): Promise<DeleteOrgResult> {
+  await requireAdmin();
+  if (!id) return { ok: false, error: "מזהה ארגון חסר" };
+  const db = createAdminClient();
+
+  const [{ count: pCount }, { count: uCount }] = await Promise.all([
+    db.from("purchase_rows").select("id", { count: "exact", head: true }).eq("organization_id", id),
+    db.from("profiles").select("id", { count: "exact", head: true }).eq("organization_id", id),
+  ]);
+  const purchases = pCount ?? 0;
+  const users = uCount ?? 0;
+
+  if ((purchases > 0 || users > 0) && !force) {
+    return { ok: false, confirm: true, purchases, users };
+  }
+
+  const { error } = await db.from("organizations").delete().eq("id", id);
+  if (error) return { ok: false, error: "שגיאה במחיקת הרפת: " + error.message };
+  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

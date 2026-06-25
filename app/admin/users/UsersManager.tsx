@@ -9,6 +9,7 @@ import {
   setUserStatus,
   setUserRole,
   createOrganization,
+  deleteOrganization,
   resetUserDevice,
 } from "@/lib/actions/users";
 import { formatDateTime } from "@/lib/format";
@@ -55,6 +56,22 @@ export default function UsersManager({
     if (!res.ok) return setError(res.error);
     setNewOrg("");
     router.refresh();
+  }
+
+  async function deleteOrg(o: { id: string; name: string }) {
+    if (!confirm(`למחוק את הרפת "${o.name}"?`)) return;
+    setError(null);
+    let res = await deleteOrganization(o.id, false);
+    if (!res.ok && "confirm" in res) {
+      const ok = confirm(
+        `שים/י לב: לרפת "${o.name}" משויכים ${res.purchases} שורות רכישה ו-${res.users} משתמשים.\n` +
+          `מחיקה תנתק אותם (הנתונים לא יוצגו יותר תחת רפת זו). להמשיך במחיקה?`,
+      );
+      if (!ok) return;
+      res = await deleteOrganization(o.id, true);
+    }
+    if (!res.ok && "error" in res) setError(res.error);
+    else router.refresh();
   }
 
   async function onEdit(e: React.FormEvent<HTMLFormElement>) {
@@ -282,6 +299,35 @@ export default function UsersManager({
         >
           הוספה
         </button>
+      </div>
+
+      {/* רשימת רפתות/ארגונים – עם מחיקה */}
+      <div className="rounded-2xl border border-brand-line bg-brand-surface p-4">
+        <h2 className="mb-2 text-base font-semibold text-brand-ink">
+          רפתות / ארגונים ({organizations.length})
+        </h2>
+        {organizations.length === 0 ? (
+          <p className="text-sm text-brand-muted">אין רפתות עדיין.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {organizations.map((o) => (
+              <li
+                key={o.id}
+                className="flex items-center gap-2 rounded-full border border-brand-line bg-brand-bg py-1 pe-2 ps-3 text-sm text-brand-ink"
+              >
+                <span>{o.name}</span>
+                <button
+                  onClick={() => deleteOrg(o)}
+                  title="מחיקת רפת"
+                  aria-label={`מחיקת ${o.name}`}
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-brand-danger hover:bg-brand-danger/10"
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="table-scroll rounded-2xl border border-brand-line bg-brand-surface">
