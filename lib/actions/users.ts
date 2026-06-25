@@ -17,6 +17,8 @@ interface NewUserInput {
   phone: string;
   organization_id: string | null;
   role: UserRole;
+  show_purchases?: boolean;
+  show_my_purchases?: boolean;
 }
 
 /**
@@ -43,6 +45,8 @@ async function createUserRecord(
     organization_id: input.organization_id,
     role: input.role,
     status: "active",
+    show_purchases: input.show_purchases ?? true,
+    show_my_purchases: input.show_my_purchases ?? true,
   });
   if (profErr) {
     await db.auth.admin.deleteUser(created.user.id);
@@ -80,8 +84,12 @@ export async function createUser(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "יש לשייך משתמש רגיל לארגון." };
   }
 
+  // הרשאות תצוגה (checkbox – נשלח 'on' רק כשמסומן)
+  const show_purchases = formData.get("show_purchases") === "on";
+  const show_my_purchases = formData.get("show_my_purchases") === "on";
+
   const db = createAdminClient();
-  const res = await createUserRecord(db, data);
+  const res = await createUserRecord(db, { ...data, show_purchases, show_my_purchases });
   if (!res.ok) return res;
 
   revalidatePath("/admin/users");
@@ -141,6 +149,8 @@ export async function importUsers(formData: FormData): Promise<ImportUsersResult
       phone: e.phone,
       organization_id,
       role: e.role,
+      show_purchases: e.show_purchases,
+      show_my_purchases: e.show_my_purchases,
     });
     if (res.ok) created++;
     else {

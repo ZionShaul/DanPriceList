@@ -17,6 +17,8 @@ export interface UserEntry {
   phone: string;
   organization: string | null; // שם הארגון (יותאם/ייווצר לפי שם)
   role: "user" | "admin";
+  show_purchases: boolean; // הצגת רכישות במסך החיפוש/חומר
+  show_my_purchases: boolean; // הצגת מסך "הרכישות שלי"
 }
 
 export interface UserParseResult {
@@ -25,7 +27,14 @@ export interface UserParseResult {
   totalRows: number;
 }
 
-type Field = "full_name" | "email" | "phone" | "organization" | "role";
+type Field =
+  | "full_name"
+  | "email"
+  | "phone"
+  | "organization"
+  | "role"
+  | "show_purchases"
+  | "show_my_purchases";
 
 const HEADER_SYNONYMS: Record<Field, string[]> = {
   full_name: ["שם מלא", "שם", "שם משתמש", "full name", "name"],
@@ -33,6 +42,8 @@ const HEADER_SYNONYMS: Record<Field, string[]> = {
   phone: ["טלפון", "נייד", "מספר טלפון", "phone"],
   organization: ["ארגון", "לקוח", "שם לקוח", "משק", "organization"],
   role: ["תפקיד", "סוג משתמש", "role"],
+  show_purchases: ["הצגת רכישות בחיפוש", "רכישות בחיפוש", "הצגת רכישות", "show purchases"],
+  show_my_purchases: ["הצגת הרכישות שלי", "הרכישות שלי", "מסך הרכישות שלי", "show my purchases"],
 };
 
 function buildHeaderMap(headers: string[]): Partial<Record<Field, string>> {
@@ -56,6 +67,13 @@ function toText(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   const s = String(value).trim();
   return s === "" ? null : s;
+}
+
+/** בוליאני מתא אקסל: ריק → ברירת מחדל (true); "לא"/no/false/0 → false; אחרת true. */
+function toBool(value: unknown): boolean {
+  const s = toText(value);
+  if (s === null) return true;
+  return !/^(לא|no|false|0|n|✗|x)$/i.test(s);
 }
 
 const ADMIN_KEYWORDS = ["admin", "מנהל"];
@@ -102,7 +120,15 @@ export function classifyUsers(
       continue;
     }
     seenEmails.add(email);
-    entries.push({ full_name, email, phone, organization, role });
+    entries.push({
+      full_name,
+      email,
+      phone,
+      organization,
+      role,
+      show_purchases: toBool(get(rec, "show_purchases")),
+      show_my_purchases: toBool(get(rec, "show_my_purchases")),
+    });
   }
 
   return { entries, invalid, totalRows: records.length };

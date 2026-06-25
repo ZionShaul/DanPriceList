@@ -140,6 +140,27 @@ export default function UsersManager({
               ))}
             </select>
           </label>
+          <div className="sm:col-span-2 space-y-2 rounded-xl border border-brand-line bg-brand-bg p-3">
+            <span className="block text-sm font-medium text-brand-ink">הרשאות תצוגה</span>
+            <label className="flex items-center gap-2">
+              <input
+                name="show_purchases"
+                type="checkbox"
+                defaultChecked
+                className="h-5 w-5 accent-brand-primary"
+              />
+              <span className="text-sm text-brand-ink">הצגת הרכישות במסך החיפוש</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                name="show_my_purchases"
+                type="checkbox"
+                defaultChecked
+                className="h-5 w-5 accent-brand-primary"
+              />
+              <span className="text-sm text-brand-ink">הצגת מסך &quot;הרכישות שלי&quot;</span>
+            </label>
+          </div>
           <div className="sm:col-span-2">
             <button
               type="submit"

@@ -32,8 +32,9 @@ export default function UsersImport() {
     <section className="rounded-2xl border border-brand-line bg-brand-surface p-5">
       <h2 className="mb-1 text-base font-semibold text-brand-ink">טעינת משתמשים מאקסל</h2>
       <p className="mb-3 text-sm text-brand-muted">
-        עמודות: <span className="font-medium">שם מלא</span>, אימייל, טלפון, ארגון, תפקיד. ארגון חדש
-        ייווצר אוטומטית לפי שמו.{" "}
+        עמודות: <span className="font-medium">שם מלא</span>, אימייל, טלפון, ארגון, תפקיד. עמודות
+        רשות: &quot;הצגת רכישות בחיפוש&quot; ו&quot;הצגת הרכישות שלי&quot; (כן/לא, ברירת מחדל כן).
+        ארגון חדש ייווצר אוטומטית לפי שמו.{" "}
         <a href="/templates/users-template.xlsx" download className="text-brand-primary underline">
           הורדת תבנית
         </a>
