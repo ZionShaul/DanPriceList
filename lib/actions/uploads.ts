@@ -78,12 +78,51 @@ export async function uploadAndParse(formData: FormData): Promise<UploadActionRe
   const orgMap = await resolveOrganizations(db, result.clients);
 
   // 4) מיפוי חומרים תקניים
-  const { byName, bySku } = await loadMaterialIndex(db);
+  const { byName, bySku, canonicalByName } = await loadMaterialIndex(db);
+
+  // 4א) "שם גנרי" (פורמט מצרפי) משמש כשם תקני בקטלוג – יצירת חומרים חסרים
+  const genericNames = [
+    ...new Set(result.valid.map((r) => r.generic).filter((g): g is string => !!g)),
+  ];
+  const toCreate = genericNames.filter((g) => !canonicalByName.has(g.toLowerCase()));
+  if (toCreate.length) {
+    const { data: created, error } = await db
+      .from("materials_catalog")
+      .insert(toCreate.map((canonical_name) => ({ canonical_name, status: "active" })))
+      .select("id, canonical_name");
+    if (error) return { ok: false, error: "שגיאה ביצירת חומרים מהשם הגנרי: " + error.message };
+    for (const m of created ?? []) {
+      const key = String(m.canonical_name).toLowerCase();
+      canonicalByName.set(key, m.id);
+      byName.set(key, m.id);
+    }
+  }
+
+  // 4ב) שיוך השם הגולמי (תאור פריט) כשם חלופי לחומר הגנרי – כדי שגם בעתיד יתמפה
+  const newAliases: { material_id: string; alias_name: string; sku: string | null }[] = [];
+  const aliasSeen = new Set<string>();
+  for (const r of result.valid) {
+    if (!r.generic) continue;
+    const matId = canonicalByName.get(r.generic.toLowerCase());
+    if (!matId) continue;
+    const descKey = r.description.toLowerCase();
+    if (descKey === r.generic.toLowerCase() || byName.has(descKey) || aliasSeen.has(descKey)) {
+      continue;
+    }
+    aliasSeen.add(descKey);
+    newAliases.push({ material_id: matId, alias_name: r.description, sku: r.sku });
+    byName.set(descKey, matId);
+  }
+  for (const part of chunk(newAliases, 500)) {
+    if (part.length) await db.from("material_aliases").insert(part);
+  }
+
   const materialKeys = new Set<string>();
   const unmapped = new Set<string>();
 
   const rows = result.valid.map((r: RawPurchase) => {
     const matId =
+      (r.generic ? canonicalByName.get(r.generic.toLowerCase()) : undefined) ??
       byName.get(r.description.toLowerCase()) ??
       (r.sku ? bySku.get(r.sku) : undefined) ??
       null;
@@ -204,9 +243,14 @@ async function resolveOrganizations(db: AdminDb, clients: string[]): Promise<Map
 async function loadMaterialIndex(db: AdminDb) {
   const byName = new Map<string, string>();
   const bySku = new Map<string, string>();
+  const canonicalByName = new Map<string, string>(); // שם תקני בלבד (לזיהוי/יצירה לפי שם גנרי)
 
   const { data: materials } = await db.from("materials_catalog").select("id, canonical_name");
-  for (const m of materials ?? []) byName.set(String(m.canonical_name).toLowerCase(), m.id);
+  for (const m of materials ?? []) {
+    const key = String(m.canonical_name).toLowerCase();
+    byName.set(key, m.id);
+    canonicalByName.set(key, m.id);
+  }
 
   const { data: aliases } = await db
     .from("material_aliases")
@@ -215,5 +259,5 @@ async function loadMaterialIndex(db: AdminDb) {
     byName.set(String(a.alias_name).toLowerCase(), a.material_id);
     if (a.sku) bySku.set(String(a.sku), a.material_id);
   }
-  return { byName, bySku };
+  return { byName, bySku, canonicalByName };
 }

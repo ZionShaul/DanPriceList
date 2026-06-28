@@ -12,6 +12,7 @@ export interface RawPurchase {
   totalPrice: number;
   date: string | null;
   invoice: string | null;
+  generic: string | null; // "שם גנרי" – שם תקני לקטלוג (פורמט מצרפי)
 }
 
 export interface RejectedParse {
@@ -36,7 +37,8 @@ type Field =
   | "unitPrice"
   | "totalPrice"
   | "date"
-  | "invoice";
+  | "invoice"
+  | "generic";
 
 // מילים נרדפות לכותרות עמודות (סעיף 6.1)
 // תומך בשני מבני קבצים (מזוהה אוטומטית לפי הכותרות):
@@ -52,6 +54,7 @@ const HEADER_SYNONYMS: Record<Field, string[]> = {
   totalPrice: ["סהכ מחיר", "סה״כ מחיר", 'סה"כ מחיר', "סהכ", "סה״כ", "סכום", "סך הכל", "total"],
   date: ["תאריך", "תאריך חשבונית", "תאריך תעודה"],
   invoice: ["מספר חשבונית", "חשבונית", "מספר תעודה", "תעודה", "אסמכתא", "מספר חשבונית/תעודה"],
+  generic: ["שם גנרי", "גנרי", "generic"],
 };
 
 const CREDIT_KEYWORDS = ["זיכוי", "החזר", "ביטול"];
@@ -177,6 +180,8 @@ export function classifyRows(
     const sku = toText(get(rec, "sku"));
     const invoice = toText(get(rec, "invoice"));
     const date = toDateString(get(rec, "date"));
+    const genericRaw = toText(get(rec, "generic"));
+    const generic = genericRaw && genericRaw !== "-" ? genericRaw : null;
 
     const quantity = parseNumber(get(rec, "quantity"));
     let unitPrice = parseNumber(get(rec, "unitPrice"));
@@ -236,6 +241,7 @@ export function classifyRows(
       totalPrice,
       date,
       invoice,
+      generic,
     });
   }
 
