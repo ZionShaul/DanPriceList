@@ -39,11 +39,14 @@ type Field =
   | "invoice";
 
 // מילים נרדפות לכותרות עמודות (סעיף 6.1)
+// תומך בשני מבני קבצים (מזוהה אוטומטית לפי הכותרות):
+//  A) קובץ חשבוניות גולמי: לקוח, מק"ט, תאריך, מחיר ליחידה, סה"כ מחיר ...
+//  B) טבלה מצרפית לפי משק: שם משק, תאור פריט, כמות, מחיר (יחידה), סכום (סה"כ), מחלקה ...
 const HEADER_SYNONYMS: Record<Field, string[]> = {
-  client: ["לקוח", "שם לקוח", "ארגון"],
+  client: ["לקוח", "שם לקוח", "שם משק", "משק", "ארגון"],
   supplier: ["ספק", "שם ספק"],
   sku: ["מקט", "מק״ט", 'מק"ט', "קוד פריט", "קוד"],
-  description: ["תיאור מוצר", "תיאור", "שם חומר", "פריט", "מוצר", "שם פריט"],
+  description: ["תיאור מוצר", "תיאור", "תאור פריט", "תאור", "שם חומר", "פריט", "מוצר", "שם פריט"],
   quantity: ["כמות", "כמות נטו"],
   unitPrice: ["מחיר ליחידה", "מחיר יחידה", "מחיר", "מחיר יח"],
   totalPrice: ["סהכ מחיר", "סה״כ מחיר", 'סה"כ מחיר', "סהכ", "סה״כ", "סכום", "סך הכל", "total"],
@@ -62,21 +65,37 @@ export function normalizeHeader(s: string): string {
     .toLowerCase();
 }
 
-/** ממפה כל שדה במערכת לכותרת בפועל בקובץ. */
+/**
+ * ממפה כל שדה במערכת לכותרת בפועל בקובץ, בשני מעברים:
+ *  1) התאמה מדויקת (כותרת == שם נרדף).
+ *  2) התאמה חלקית (הכותרת מכילה את השם הנרדף או להפך).
+ * כותרת שכבר שובצה לשדה לא תשובץ שוב — כדי למנוע שיוך כפול
+ * (למשל "סכום"/"מחיר" בפורמט המצרפי, שאחרת היו מתנגשים).
+ */
 export function buildHeaderMap(headers: string[]): Partial<Record<Field, string>> {
   const norm = headers.map((h) => ({ raw: h, n: normalizeHeader(h) }));
   const map: Partial<Record<Field, string>> = {};
-  (Object.keys(HEADER_SYNONYMS) as Field[]).forEach((field) => {
+  const used = new Set<string>();
+  const fields = Object.keys(HEADER_SYNONYMS) as Field[];
+
+  const assign = (field: Field, predicate: (n: string, ns: string) => boolean) => {
+    if (map[field]) return;
     for (const syn of HEADER_SYNONYMS[field]) {
       const ns = normalizeHeader(syn);
-      const hit =
-        norm.find((h) => h.n === ns) ?? norm.find((h) => h.n.includes(ns) || ns.includes(h.n));
+      const hit = norm.find((h) => !used.has(h.raw) && predicate(h.n, ns));
       if (hit) {
         map[field] = hit.raw;
-        break;
+        used.add(hit.raw);
+        return;
       }
     }
-  });
+  };
+
+  // מעבר 1: התאמות מדויקות (עדיפות)
+  for (const field of fields) assign(field, (n, ns) => n === ns);
+  // מעבר 2: התאמות חלקיות
+  for (const field of fields) assign(field, (n, ns) => n.includes(ns) || ns.includes(n));
+
   return map;
 }
 
